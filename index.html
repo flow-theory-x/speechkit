@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合成音声</title>
+</head>
+<body>
+    <h1>合成音声の例</h1>
+    <input type="text" id="textInput" placeholder="話すテキストを入力">
+    <select id="voiceSelect">
+        <option value="">-- 声を選択 --</option>
+    </select>
+    <button onclick="speak()">話す</button>
+
+    <script>
+        let voices = [];
+
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            const languages = ['ja-JP', 'en-US'];
+            const filteredVoices = voices.filter(voice => languages.includes(voice.lang));
+            filteredVoices.sort((a, b) => {
+                if (a.lang < b.lang) return -1;
+                if (a.lang > b.lang) return 1;
+                return 0;
+            });
+
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '<option value="">選択してください</option>';
+            filteredVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        speechSynthesis.onvoiceschanged = loadVoices;
+
+        function speak() {
+						window.speechSynthesis.cancel()
+            const text = document.getElementById('textInput').value;
+            const selectedVoiceName = document.getElementById('voiceSelect').value;
+            const utterance = new SpeechSynthesisUtterance(text);
+            const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang; 
+            } else {
+                utterance.lang = 'ja-JP'; 
+            }
+
+						document.getElementById('textInput').value = '';
+            utterance.rate = 1.2;     
+            utterance.pitch = 1.0;    
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        document.getElementById('textInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); 
+                speak(); 
+            }
+        });
+    </script>
+</body>
+</html>
