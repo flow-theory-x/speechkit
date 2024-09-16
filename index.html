@@ -1,68 +1,168 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>合成音声</title>
-</head>
-<body>
-    <h1>合成音声の例</h1>
-    <input type="text" id="textInput" placeholder="話すテキストを入力">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text to speech tool</title>
+  </head>
+  <body>
+    <h1>Text to speech tool</h1>
+    <label for="pitchSelect">CHARACTOR:</label>
     <select id="voiceSelect">
-        <option value="">-- 声を選択 --</option>
+      <option value="">-- 声を選択 --</option>
     </select>
+
+    <label for="pitchSelect">PITCH:</label>
+    <select id="pitchSelect">
+      <option value="0.3">非常に低い (0.3)</option>
+      <option value="0.5">低い (0.5)</option>
+      <option value="0.8">すこし低い (0.8)</option>
+      <option value="1.0" selected>標準 (1.0)</option>
+      <option value="1.3">すこし高い (1.3)</option>
+      <option value="1.5">高い (1.5)</option>
+      <option value="2.0">非常に高い (2.0)</option>
+    </select>
+
+    <label for="rateSelect">SPEED:</label>
+    <select id="rateSelect">
+      <option value="0.3">非常にゆっくり (0.3)</option>
+      <option value="0.5">すこしゆっくり (0.5)</option>
+      <option value="0.8">ゆっくり (0.8)</option>
+      <option value="1.0" selected>標準 (1.0)</option>
+      <option value="1.5">すこし早く (1.5)</option>
+      <option value="2">早い (2)</option>
+      <option value="3">非常に早く (3)</option>
+    </select>
+    <br />
+    <input
+      type="text"
+      id="textInput"
+      placeholder="話すテキストを入力"
+      style="width: 740px"
+    />
+
     <button onclick="speak()">話す</button>
 
+    <hr />
+    <h2>定型文を話す:</h2>
+    <button onclick="speakPreset('こんにちは')">こんにちは</button>
+    <button onclick="speakPreset('おはようございます')">
+      おはようございます
+    </button>
+    <button onclick="speakPreset('さようなら、またね')">
+      さようなら。またね！
+    </button>
+    <button onclick="speakPreset('へぇ。そうなんですね。')">
+      へぇ。そうなんですね。
+    </button>
+    <button onclick="speakPreset('すんごいですねぇ')">すんごいですねぇ</button>
+    <button onclick="speakPreset('師匠のバーカ')">師匠のバーカ！</button>
+
+    <hr />
+    <div style="text-align: right">
+      powerd by FLOW |
+      <a href="https://x.com/Equality4AC" target="_blank">X</a> |
+      <a href="https://github.com/flow-theory-x/speechkit" target="_blank"
+        >github</a
+      >
+    </div>
+
     <script>
-        let voices = [];
+      let voices = [];
 
-        function loadVoices() {
-            voices = speechSynthesis.getVoices();
-            const languages = ['ja-JP', 'en-US'];
-            const filteredVoices = voices.filter(voice => languages.includes(voice.lang));
-            filteredVoices.sort((a, b) => {
-                if (a.lang < b.lang) return -1;
-                if (a.lang > b.lang) return 1;
-                return 0;
-            });
+      function loadVoices() {
+        voices = speechSynthesis.getVoices();
+        const languages = ["ja-JP", "en-US"];
+        const filteredVoices = voices.filter((voice) =>
+          languages.includes(voice.lang)
+        );
+        filteredVoices
+          .sort((a, b) => {
+            if (a.lang < b.lang) return -1;
+            if (a.lang > b.lang) return 1;
+            return 0;
+          })
+          .reverse();
 
-            const voiceSelect = document.getElementById('voiceSelect');
-            voiceSelect.innerHTML = '<option value="">選択してください</option>';
-            filteredVoices.forEach(voice => {
-                const option = document.createElement('option');
-                option.value = voice.name;
-                option.textContent = `${voice.name} (${voice.lang})`;
-                voiceSelect.appendChild(option);
-            });
+        const voiceSelect = document.getElementById("voiceSelect");
+        voiceSelect.innerHTML = '<option value="">選択してください</option>';
+        filteredVoices.forEach((voice) => {
+          if (!voice.name.includes("O-Ren")) {
+            const option = document.createElement("option");
+            option.value = voice.name;
+            option.textContent = `${voice.name} (${voice.lang})`;
+            voiceSelect.appendChild(option);
+          }
+        });
+      }
+
+      speechSynthesis.onvoiceschanged = loadVoices;
+
+      function speak() {
+        window.speechSynthesis.cancel();
+        const text = document.getElementById("textInput").value;
+        const selectedVoiceName = document.getElementById("voiceSelect").value;
+        const pitchValue = parseFloat(
+          document.getElementById("pitchSelect").value
+        );
+        const rateValue = parseFloat(
+          document.getElementById("rateSelect").value
+        );
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const selectedVoice = voices.find(
+          (voice) => voice.name === selectedVoiceName
+        );
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang;
+        } else {
+          utterance.lang = "ja-JP";
         }
 
-        speechSynthesis.onvoiceschanged = loadVoices;
+        document.getElementById("textInput").value = "";
+        utterance.rate = rateValue;
+        utterance.pitch = pitchValue;
+        console.dir(utterance);
 
-        function speak() {
-						window.speechSynthesis.cancel()
-            const text = document.getElementById('textInput').value;
-            const selectedVoiceName = document.getElementById('voiceSelect').value;
-            const utterance = new SpeechSynthesisUtterance(text);
-            const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-                utterance.lang = selectedVoice.lang; 
-            } else {
-                utterance.lang = 'ja-JP'; 
-            }
+        window.speechSynthesis.speak(utterance);
+      }
 
-						document.getElementById('textInput').value = '';
-            utterance.rate = 1.2;     
-            utterance.pitch = 1.0;    
-            window.speechSynthesis.speak(utterance);
+      function speakPreset(text) {
+        window.speechSynthesis.cancel();
+        const selectedVoiceName = document.getElementById("voiceSelect").value;
+        const pitchValue = parseFloat(
+          document.getElementById("pitchSelect").value
+        );
+        const rateValue = parseFloat(
+          document.getElementById("rateSelect").value
+        );
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const selectedVoice = voices.find(
+          (voice) => voice.name === selectedVoiceName
+        );
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice.lang;
+        } else {
+          utterance.lang = "ja-JP";
         }
-        
-        document.getElementById('textInput').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); 
-                speak(); 
-            }
+
+        utterance.rate = rateValue;
+        utterance.pitch = pitchValue;
+
+        window.speechSynthesis.speak(utterance);
+      }
+
+      document
+        .getElementById("textInput")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            speak();
+          }
         });
     </script>
-</body>
+  </body>
 </html>
