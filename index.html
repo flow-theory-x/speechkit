@@ -1,9 +1,36 @@
 <!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Text to speech tool</title>
+    <style>
+      input {
+        margin:20px 3px;
+        padding: 5px 10px;
+        height:25px;
+      }
+      button {
+        padding: 5px 10px;
+        margin: 3px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      #presetButtons {
+        margin-top: 20px;
+      }
+
+      #presetInput,
+      #registerButton {
+        margin-top: 10px;
+      }
+    </style>
   </head>
   <body>
     <h1>Text to speech tool</h1>
@@ -43,23 +70,32 @@
     <button onclick="speakText()">話す</button>
 
     <hr />
-    <h2>定型文を話す:</h2>
-    <button onclick="speakPreset('こんにちは')">こんにちは</button>
-    <button onclick="speakPreset('おはようございます')">
-      おはようございます
-    </button>
-    <button onclick="speakPreset('さようなら、またね')">
-      さようなら。またね！
-    </button>
-    <button onclick="speakPreset('へぇ。そうなんですね。')">
-      へぇ。そうなんですね。
-    </button>
-    <button onclick="speakPreset('すんごいですねぇ')">すんごいですねぇ</button>
-    <button onclick="speakPreset('くさ')">草</button>
-    <button onclick="speakPreset('師匠のバーカ')">師匠のバーカ！</button>
-    <button onclick="speakPreset('師匠はへいけ')">師匠は平家</button>
-    <button onclick="speakPreset('師匠はおちむしゃ')">師匠は落武者</button>
-    <button onclick="speakPreset('師匠のあいこんくさ')">師匠のアイコン草</button>
+    <h2>定型文を話す</h2>
+    <div id="presetButtons">
+      <button onclick="speakPreset('こんにちは')">こんにちは</button>
+      <button onclick="speakPreset('おはようございます')">
+        おはようございます
+      </button>
+      <button onclick="speakPreset('さようなら、またね')">
+        さようなら。またね！
+      </button>
+      <button onclick="speakPreset('へぇ。そうなんですね。')">
+        へぇ。そうなんですね。
+      </button>
+      <button onclick="speakPreset('すんごいですねぇ')">
+        すんごいですねぇ
+      </button>
+      <button onclick="speakPreset('くさ')">草</button>
+    </div>
+    <br />
+    オリジナル定型文を登録 :
+    <input
+      type="text"
+      id="presetInput"
+      placeholder="定型文を入力"
+      style="width: 540px"
+    />
+    <button onclick="registerPreset()">登録</button>
 
     <hr />
     <div style="text-align: right">
@@ -134,10 +170,7 @@
         utterance.rate = rate;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
-
-        if (!text) {
-          document.getElementById("textInput").value = "";
-        }
+        document.getElementById("textInput").value = "";
       }
 
       function speakPreset(text) {
@@ -162,10 +195,25 @@
         .getElementById("textInput")
         .addEventListener("keydown", function (event) {
           if (event.key === "Enter" && !isIMEActive) {
+            const text = document.getElementById("textInput").value;
             event.preventDefault();
-            speakText();
+            speakText(text);
           }
         });
+
+      // 新しい定型文を登録する
+      function registerPreset() {
+        const presetText = document.getElementById("presetInput").value;
+        if (presetText) {
+          const newButton = document.createElement("button");
+          newButton.textContent = presetText;
+          newButton.onclick = function () {
+            speakPreset(presetText);
+          };
+          document.getElementById("presetButtons").appendChild(newButton);
+          document.getElementById("presetInput").value = ""; // 入力をクリア
+        }
+      }
     </script>
   </body>
 </html>
